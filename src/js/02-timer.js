@@ -119,16 +119,18 @@ console.log(convertMs(24140000)); // {days: 0, hours: 6 minutes: 42, seconds: 20
 Для відображення повідомлень користувачеві, замість window.alert(), використовуй бібліотеку notiflix
 */
 
-// const options = {
-//   enableTime: true,
-//   time_24hr: true,
-//   defaultDate: new Date(),
-//   minuteIncrement: 1,
-//   onClose(selectedDates) {
-//     console.log(selectedDates[0]);
-//   },
+const options = {
+  enableTime: true,
+  time_24hr: true,
+  defaultDate: new Date(),
+  minuteIncrement: 1,
+  onClose(selectedDates) {
+    console.log(selectedDates[0]); // choozen data from calendar 23:59 min
+  },
+};
 
-// flatpickr('input[type="text"]', options);
+flatpickr('#datetime-picker', options);
+console.log(flatpickr); // function of flatpickr
 
 // if('дату в минулому') {
 //   // window.alert("Please choose a date in the future")
