@@ -1,4 +1,4 @@
-import throttle from 'lodash.throttle';
+// import throttle from 'lodash.throttle'; ВИДАЛИТИ НЕ ЗАБУТИ!!!!!
 /* Завдання 1 - перемикач кольорів
 HTML містить кнопки «Start» і «Stop».
 
@@ -33,12 +33,33 @@ function getRandomHexColor() {
 const startBtnRef = document.querySelector('[data-start]');
 const stopBtnRef = document.querySelector('[data-stop]');
 
-startBtnRef.addEventListener('click', throttle(onStartBtnClick, 1000));
-stopBtnRef.addEventListener('click', onStopBtnClick);
+//------------------------- 1 variant
 
-function onStartBtnClick() {
-  document.body.style.backgroundColor = getRandomHexColor(); // статично міняє колір, а треба щоб через рівні проміжки міняло
-}
-function onStopBtnClick() {
-  //  sptopped onStartBtnClick();
-}
+startBtnRef.addEventListener('click', () => {
+  timerId = setInterval(() => {
+    document.body.style.backgroundColor = getRandomHexColor();
+    startBtnRef.disabled = true;
+  }, 1000); // listen each 1 sec
+});
+
+stopBtnRef.addEventListener('click', () => {
+  clearInterval(timerId);
+  startBtnRef.disabled = false;
+});
+
+//------------------------- 2 variant
+// startBtnRef.addEventListener('click', onStartBtnClick);
+
+// function onStartBtnClick() {
+//   const timerId = setInterval(colorChange, 1000);
+//   function colorChange() {
+//     document.body.style.backgroundColor = getRandomHexColor();
+//     startBtnRef.disabled = true;
+//   }
+//   stopBtnRef.addEventListener('click', evt => {
+//     if (evt) {
+//       clearInterval(timerId);
+//       startBtnRef.disabled = false;
+//     }
+//   });
+// }
