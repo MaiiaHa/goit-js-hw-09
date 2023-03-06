@@ -232,3 +232,8 @@ function updateTimer({ days, hours, minutes, seconds }) {
   refs.minutes.textContent = minutes;
   refs.seconds.textContent = seconds;
 }
+
+// added 2 sign for timer for formatting "00"
+function addLeadingZero(value) {
+  return String(value).padStart(2, '0');
+}
