@@ -68,7 +68,11 @@ const options = {
 */
 /* Вибір дати​
 
-Метод onClose() з об'єкта параметрів викликається щоразу під час закриття елемента інтерфейсу, який створює flatpickr. Саме у ньому варто обробляти дату, обрану користувачем. Параметр selectedDates - це масив обраних дат, тому ми беремо перший елемент.
+Метод onClose() з об'єкта параметрів викликається щоразу під час закриття 
+елемента інтерфейсу, який створює flatpickr. 
+Саме у ньому варто обробляти дату, обрану користувачем. 
+Параметр selectedDates - це масив обраних дат, тому ми 
+беремо перший елемент.
 
 Якщо користувач вибрав дату в минулому, покажи window.alert() з текстом "Please choose a date in the future".
 Якщо користувач вибрав валідну дату (в майбутньому), кнопка «Start» стає активною.
@@ -119,45 +123,82 @@ console.log(convertMs(24140000)); // {days: 0, hours: 6 minutes: 42, seconds: 20
 Для відображення повідомлень користувачеві, замість window.alert(), використовуй бібліотеку notiflix
 */
 
+// ===============================   styles
+
+const timerDataRef = document.querySelector('.timer');
+const fieldDataRef = document.querySelectorAll('.field');
+const valueDataRef = document.querySelectorAll('.value');
+
+timerDataRef.style.display = 'flex';
+timerDataRef.style.gap = '10px';
+
+[...fieldDataRef].map(el => {
+  el.style.display = 'flex';
+  el.style.flexDirection = 'column';
+  el.style.textAlign = 'center';
+});
+
+[...valueDataRef].map(el => {
+  el.style.fontSize = '24px';
+});
+
+// ===============================  function flatpickr
+const startBtnRef = document.querySelector('[data-start]');
+startBtnRef.disabled = true; // start btn do not active
+
 const options = {
   enableTime: true,
   time_24hr: true,
-  defaultDate: new Date(),
-  minuteIncrement: 1,
+  defaultDate: new Date(), // поточна дата і час сьогодні
+  minuteIncrement: 1, // налаштування кроку хв.
   onClose(selectedDates) {
+    //Wed Mar 01 2023 15:39:00 GMT+0100 (Central European Standard Time)
     console.log(selectedDates[0]); // choozen data from calendar 23:59 min
+
+    const startDate = selectedDates[0].getTime();
+    const dueDate = Date.now();
+    const ms = startDate - dueDate;
+
+    if (startDate < dueDate) {
+      Notiflix.Notify.failure('Please choose a date in the future', {
+        timeout: 1000,
+      });
+      startBtnRef.disabled = true; // to fix
+    }
+    startBtnRef.disabled = false; // start btn active
+    setInterval(() => {
+      ms;
+    }, 1000);
+  },
+
+  convertMs(ms) {
+    // Number of milliseconds per unit of time
+    const day = hour * 24;
+    const hour = minute * 60;
+    const minute = second * 60;
+    const second = 1000;
+
+    const days = Math.floor(ms / day); // Remaining days
+    const hours = Math.floor((ms % day) / hour); // Remaining hours
+    const minutes = Math.floor(((ms % day) % hour) / minute); // Remaining minutes
+    const seconds = Math.floor((((ms % day) % hour) % minute) / second); // Remaining seconds
+
+    return { days, hours, minutes, seconds };
   },
 };
 
 flatpickr('#datetime-picker', options);
-console.log(flatpickr); // function of flatpickr
 
-// if('дату в минулому') {
-//   // window.alert("Please choose a date in the future")
-//   Notiflix.Notify.warning('Please choose a date in the future');
-//   } else if('валідну дату (в майбутньому)')
-// { 'кнопка «Start» стає активною - Кнопка «Start» повинна бути неактивною доти, доки користувач не вибрав дату в майбутньому.' }
+// const Refs = {
+//   day: document.querySelector('[data-days]'),
+//   hours: document.querySelector('[data-hours]'),
+//   minutes: document.querySelector('[data-minutes]'),
+//   seconds: document.querySelector('[data-seconds]'),
+// };
 
-// // Для підрахунку значень використовуй готову функцію convertMs, де ms - різниця між кінцевою і поточною датою в мілісекундах.
-// function convertMs(ms) {
-//   // Number of milliseconds per unit of time
-//   const second = 1000;
-//   const minute = second * 60;
-//   const hour = minute * 60;
-//   const day = hour * 24;
+// Для підрахунку значень використовуй готову функцію convertMs,
+// де ms - різниця між кінцевою і поточною датою в мілісекундах.
 
-//   // Remaining days
-//   const days = Math.floor(ms / day);
-//   // Remaining hours
-//   const hours = Math.floor((ms % day) / hour);
-//   // Remaining minutes
-//   const minutes = Math.floor(((ms % day) % hour) / minute);
-//   // Remaining seconds
-//   const seconds = Math.floor((((ms % day) % hour) % minute) / second);
-
-//   return { days, hours, minutes, seconds };
-// }
-
-// // console.log(convertMs(2000)); // {days: 0, hours: 0, minutes: 0, seconds: 2}
-// // console.log(convertMs(140000)); // {days: 0, hours: 0, minutes: 2, seconds: 20}
-// // console.log(convertMs(24140000)); // {days: 0, hours: 6 minutes: 42, seconds: 20}
+// console.log(convertMs(2000)); // {days: 0, hours: 0, minutes: 0, seconds: 2}
+// console.log(convertMs(140000)); // {days: 0, hours: 0, minutes: 2, seconds: 20}
+// console.log(convertMs(24140000)); // {days: 0, hours: 6 minutes: 42, seconds: 20}
