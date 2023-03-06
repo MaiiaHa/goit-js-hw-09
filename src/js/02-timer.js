@@ -123,28 +123,36 @@ console.log(convertMs(24140000)); // {days: 0, hours: 6 minutes: 42, seconds: 20
 Для відображення повідомлень користувачеві, замість window.alert(), використовуй бібліотеку notiflix
 */
 
+const refs = {
+  timer: document.querySelector('.timer'),
+  field: document.querySelectorAll('.field'),
+  value: document.querySelectorAll('.value'),
+  startBtn: document.querySelector('[data-start]'),
+  day: document.querySelector('[data-days]'),
+  hours: document.querySelector('[data-hours]'),
+  minutes: document.querySelector('[data-minutes]'),
+  seconds: document.querySelector('[data-seconds]'),
+};
+
 // ===============================   styles
 
-const timerDataRef = document.querySelector('.timer');
-const fieldDataRef = document.querySelectorAll('.field');
-const valueDataRef = document.querySelectorAll('.value');
+refs.timer.style.display = 'flex';
+refs.timer.style.gap = '10px';
 
-timerDataRef.style.display = 'flex';
-timerDataRef.style.gap = '10px';
-
-[...fieldDataRef].map(el => {
+[...refs.field].map(el => {
   el.style.display = 'flex';
   el.style.flexDirection = 'column';
   el.style.textAlign = 'center';
 });
 
-[...valueDataRef].map(el => {
+[...refs.value].map(el => {
   el.style.fontSize = '24px';
 });
 
 // ===============================  function flatpickr
-const startBtnRef = document.querySelector('[data-start]');
-startBtnRef.disabled = true; // start btn do not active
+refs.startBtn.disabled = true; // start btn do not active
+
+let selectedDate = null;
 
 const options = {
   enableTime: true,
@@ -153,52 +161,74 @@ const options = {
   minuteIncrement: 1, // налаштування кроку хв.
   onClose(selectedDates) {
     //Wed Mar 01 2023 15:39:00 GMT+0100 (Central European Standard Time)
-    console.log(selectedDates[0]); // choozen data from calendar 23:59 min
+    // console.log(selectedDates[0]); // choozen data from calendar 23:59 min
 
-    const startDate = selectedDates[0].getTime();
-    const dueDate = Date.now();
-    const ms = startDate - dueDate;
-
-    if (startDate < dueDate) {
+    selectedDate = selectedDates[0].getTime();
+    const dueDate = Date.now(); // current time in ms
+    console.log(selectedDate);
+    if (selectedDate < dueDate) {
       Notiflix.Notify.failure('Please choose a date in the future', {
         timeout: 1000,
       });
-      startBtnRef.disabled = true; // to fix
+
+      refs.startBtn.disabled = true; // to fix active
     }
-    startBtnRef.disabled = false; // start btn active
-    setInterval(() => {
-      ms;
-    }, 1000);
-  },
-
-  convertMs(ms) {
-    // Number of milliseconds per unit of time
-    const day = hour * 24;
-    const hour = minute * 60;
-    const minute = second * 60;
-    const second = 1000;
-
-    const days = Math.floor(ms / day); // Remaining days
-    const hours = Math.floor((ms % day) / hour); // Remaining hours
-    const minutes = Math.floor(((ms % day) % hour) / minute); // Remaining minutes
-    const seconds = Math.floor((((ms % day) % hour) % minute) / second); // Remaining seconds
-
-    return { days, hours, minutes, seconds };
+    // if (!clickedStartBtn) add alert
+    Notiflix.Notify.success('Good choise! Please start a timing', {
+      timeout: 1000,
+    });
+    refs.startBtn.disabled = false; // to fix btn do not active
   },
 };
 
+// console.log(selectedDate);
 flatpickr('#datetime-picker', options);
 
-// const Refs = {
-//   day: document.querySelector('[data-days]'),
-//   hours: document.querySelector('[data-hours]'),
-//   minutes: document.querySelector('[data-minutes]'),
-//   seconds: document.querySelector('[data-seconds]'),
-// };
+//==========================  timer
+
+// console.dir(options.onClose);
+console.log(selectedDate);
+
+function startTimer() {
+  console.log(selectedDate);
+
+  setInterval(() => {
+    const dueDate = Date.now(); // current time in ms
+    const ms = selectedDate - dueDate;
+    // console.log(selectedDate); //null
+    // console.log(dueDate); // current time
+    // console.log(ms); // null - current time
+
+    // console.log('timer in progress', ms);
+  }, 1000);
+}
+
+refs.startBtn.addEventListener('click', startTimer);
+
+function stopTimer() {
+  // idSetInterval
+}
 
 // Для підрахунку значень використовуй готову функцію convertMs,
 // де ms - різниця між кінцевою і поточною датою в мілісекундах.
+function convertMs(ms) {
+  // Number of milliseconds per unit of time
+  const day = hour * 24;
+  const hour = minute * 60;
+  const minute = second * 60;
+  const second = 1000;
 
-// console.log(convertMs(2000)); // {days: 0, hours: 0, minutes: 0, seconds: 2}
-// console.log(convertMs(140000)); // {days: 0, hours: 0, minutes: 2, seconds: 20}
-// console.log(convertMs(24140000)); // {days: 0, hours: 6 minutes: 42, seconds: 20}
+  const days = Math.floor(ms / day); // Remaining days
+  const hours = Math.floor((ms % day) / hour); // Remaining hours
+  const minutes = Math.floor(((ms % day) % hour) / minute); // Remaining minutes
+  const seconds = Math.floor((((ms % day) % hour) % minute) / second); // Remaining seconds
+
+  return { days, hours, minutes, seconds };
+}
+
+function updateTimer({ days, hours, minutes, seconds }) {
+  refs.day.textContent = days;
+  refs.hours.textContent = hours;
+  refs.minutes.textContent = minutes;
+  refs.seconds.textContent = seconds;
+}
