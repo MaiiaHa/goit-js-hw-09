@@ -123,16 +123,30 @@ console.log(convertMs(24140000)); // {days: 0, hours: 6 minutes: 42, seconds: 20
 Для відображення повідомлень користувачеві, замість window.alert(), використовуй бібліотеку notiflix
 */
 
+// ================================ create stop btn
+const stopBtnEl = document.createElement('button'); // button
+stopBtnEl.type = 'button';
+stopBtnEl.textContent = 'Stop';
+stopBtnEl.dataset.stop = '';
+
+document.body.append(stopBtnEl);
+// document.body.insertAdjacentHTML('beforeend', '<h2>Popular technologies</h2>');
+
+//================================== refs
+
 const refs = {
   timer: document.querySelector('.timer'),
   field: document.querySelectorAll('.field'),
   value: document.querySelectorAll('.value'),
   startBtn: document.querySelector('[data-start]'),
-  day: document.querySelector('[data-days]'),
-  hours: document.querySelector('[data-hours]'),
-  minutes: document.querySelector('[data-minutes]'),
-  seconds: document.querySelector('[data-seconds]'),
+  dayRef: document.querySelector('[data-days]'),
+  hoursRef: document.querySelector('[data-hours]'),
+  minutesRef: document.querySelector('[data-minutes]'),
+  secondsRef: document.querySelector('[data-seconds]'),
+  stopBtn: document.querySelector('[data-stop]'),
 };
+// console.log(stopBtnEl);
+// console.log(refs.stopBtnRef);
 
 // ===============================   styles
 
@@ -148,11 +162,8 @@ refs.timer.style.gap = '10px';
 [...refs.value].map(el => {
   el.style.fontSize = '24px';
 });
-
 // ===============================  function flatpickr
 refs.startBtn.disabled = true; // start btn do not active
-
-let selectedDate = null;
 
 const options = {
   enableTime: true,
@@ -163,77 +174,86 @@ const options = {
     //Wed Mar 01 2023 15:39:00 GMT+0100 (Central European Standard Time)
     // console.log(selectedDates[0]); // choozen data from calendar 23:59 min
 
-    selectedDate = selectedDates[0].getTime();
-    const dueDate = Date.now(); // current time in ms
-    console.log(selectedDate);
-    if (selectedDate < dueDate) {
+    const selectedDate = selectedDates[0].getTime();
+    const currentDate = Date.now(); // current time in ms
+    // console.log(selectedDates); // selected dates - is massive
+    // console.log(selectedDate);
+
+    // ========================== alerts
+
+    if (selectedDate < currentDate) {
       Notiflix.Notify.failure('Please choose a date in the future', {
         timeout: 1000,
       });
-
-      refs.startBtn.disabled = true; // to fix active
+      refs.startBtn.disabled = true; // btn do not active
+    } else {
+      refs.startBtn.disabled = false; // btn active
+      // add if (!clickedStartBtn) add alert
+      Notiflix.Notify.success('Good choise! Please start a timing', {
+        timeout: 1000,
+      });
     }
-    // if (!clickedStartBtn) add alert
-    Notiflix.Notify.success('Good choise! Please start a timing', {
-      timeout: 1000,
-    });
-    refs.startBtn.disabled = false; // to fix btn do not active
   },
 };
 
-// console.log(selectedDate);
 flatpickr('#datetime-picker', options);
-
 //==========================  timer
 
-// console.dir(options.onClose);
-console.log(selectedDate);
+// console.dir(flatpickr('#datetime-picker', options));
+// console.log(Object.values(options));
+// console.log(flatpickr.selectedDates);
 
-function startTimer() {
-  console.log(selectedDate);
-
-  setInterval(() => {
-    const dueDate = Date.now(); // current time in ms
-    const ms = selectedDate - dueDate;
-    // console.log(selectedDate); //null
-    // console.log(dueDate); // current time
-    // console.log(ms); // null - current time
-
-    // console.log('timer in progress', ms);
-  }, 1000);
-}
-
-refs.startBtn.addEventListener('click', startTimer);
-
-function stopTimer() {
-  // idSetInterval
-}
-
-// Для підрахунку значень використовуй готову функцію convertMs,
-// де ms - різниця між кінцевою і поточною датою в мілісекундах.
-function convertMs(ms) {
-  // Number of milliseconds per unit of time
-  const day = hour * 24;
-  const hour = minute * 60;
-  const minute = second * 60;
-  const second = 1000;
-
-  const days = Math.floor(ms / day); // Remaining days
-  const hours = Math.floor((ms % day) / hour); // Remaining hours
-  const minutes = Math.floor(((ms % day) % hour) / minute); // Remaining minutes
-  const seconds = Math.floor((((ms % day) % hour) % minute) / second); // Remaining seconds
-
-  return { days, hours, minutes, seconds };
-}
+const timer = {
+  isActive: false,
+  intervalId: null,
+  startTimer() {
+    if (this.isActive) {
+      return;
+    }
+    this.isActive = true;
+    this.intervalId = setInterval(() => {
+      const todayDate = Date.now(); // current time in ms
+      const selectDate = 1678312680000; // add really selected data
+      const deltaTime = selectDate - todayDate;
+      const { days, hours, minutes, seconds } = convertMs(deltaTime);
+      updateTimer({ days, hours, minutes, seconds });
+      // console.log(`${days}:${hours}:${minutes}:${seconds}`);
+    }, 1000);
+  },
+  stopTimer() {
+    clearInterval(this.intervalId); // stopped but not clicked
+    this.isActive = false;
+    console.log('stopped');
+  },
+};
 
 function updateTimer({ days, hours, minutes, seconds }) {
-  refs.day.textContent = days;
-  refs.hours.textContent = hours;
-  refs.minutes.textContent = minutes;
-  refs.seconds.textContent = seconds;
+  refs.dayRef.textContent = days;
+  refs.hoursRef.textContent = hours;
+  refs.minutesRef.textContent = minutes;
+  refs.secondsRef.textContent = seconds;
 }
 
 // added 2 sign for timer for formatting "00"
 function addLeadingZero(value) {
   return String(value).padStart(2, '0');
 }
+
+// convertMs приймає час - заг.к-сть ms - різниця між кінцевою і поточною датою в мілісекундах.
+function convertMs(ms) {
+  // Number of milliseconds per unit of time
+  const second = 1000;
+  const minute = second * 60;
+  const hour = minute * 60;
+  const day = hour * 24;
+
+  const days = addLeadingZero(Math.floor(ms / day)); // Remaining days
+  const hours = addLeadingZero(Math.floor((ms % day) / hour)); // Remaining hours
+  const minutes = addLeadingZero(Math.floor(((ms % day) % hour) / minute)); // Remaining minutes
+  const seconds = addLeadingZero(
+    Math.floor((((ms % day) % hour) % minute) / second)
+  ); // Remaining seconds
+  return { days, hours, minutes, seconds };
+}
+refs.startBtn.addEventListener('click', timer.startTimer());
+refs.stopBtn.addEventListener('click', timer.stopTimer());
