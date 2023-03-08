@@ -206,7 +206,8 @@ flatpickr('#datetime-picker', options);
 const timer = {
   isActive: false,
   intervalId: null,
-  startTimer() {
+  startTimer(e) {
+    e.preventDefault();
     if (this.isActive) {
       return;
     }
