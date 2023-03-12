@@ -34,17 +34,21 @@ const startBtnRef = document.querySelector('[data-start]');
 const stopBtnRef = document.querySelector('[data-stop]');
 
 //------------------------- 1 variant
+let timerId;
+stopBtnRef.disabled = true;
 
 startBtnRef.addEventListener('click', () => {
   timerId = setInterval(() => {
     document.body.style.backgroundColor = getRandomHexColor();
     startBtnRef.disabled = true;
+    stopBtnRef.disabled = false;
   }, 1000); // listen each 1 sec
 });
 
 stopBtnRef.addEventListener('click', () => {
   clearInterval(timerId);
   startBtnRef.disabled = false;
+  stopBtnRef.disabled = true;
 });
 
 //------------------------- 2 variant
