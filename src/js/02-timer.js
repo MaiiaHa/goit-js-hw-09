@@ -130,7 +130,6 @@ stopBtnEl.textContent = 'Stop';
 stopBtnEl.dataset.stop = '';
 
 document.body.append(stopBtnEl);
-// document.body.insertAdjacentHTML('beforeend', '<h2>Popular technologies</h2>');
 
 //================================== refs
 
@@ -138,15 +137,13 @@ const refs = {
   timer: document.querySelector('.timer'),
   field: document.querySelectorAll('.field'),
   value: document.querySelectorAll('.value'),
-  startBtn: document.querySelector('[data-start]'),
   dayRef: document.querySelector('[data-days]'),
   hoursRef: document.querySelector('[data-hours]'),
   minutesRef: document.querySelector('[data-minutes]'),
   secondsRef: document.querySelector('[data-seconds]'),
+  startBtn: document.querySelector('[data-start]'),
   stopBtn: document.querySelector('[data-stop]'),
 };
-// console.log(stopBtnEl);
-// console.log(refs.stopBtnRef);
 
 // ===============================   styles
 
@@ -163,7 +160,7 @@ refs.timer.style.gap = '10px';
   el.style.fontSize = '24px';
 });
 // ===============================  function flatpickr
-refs.startBtn.disabled = true; // start btn do not active
+let selectedDate = null;
 
 const options = {
   enableTime: true,
@@ -171,62 +168,47 @@ const options = {
   defaultDate: new Date(), // поточна дата і час сьогодні
   minuteIncrement: 1, // налаштування кроку хв.
   onClose(selectedDates) {
-    //Wed Mar 01 2023 15:39:00 GMT+0100 (Central European Standard Time)
-    // console.log(selectedDates[0]); // choozen data from calendar 23:59 min
-
-    const selectedDate = selectedDates[0].getTime();
-    const currentDate = Date.now(); // current time in ms
-    // console.log(selectedDates); // selected dates - is massive
-    // console.log(selectedDate);
-
-    // ========================== alerts
-
-    if (selectedDate < currentDate) {
-      Notiflix.Notify.failure('Please choose a date in the future', {
-        timeout: 1000,
-      });
-      refs.startBtn.disabled = true; // btn do not active
-    } else {
-      refs.startBtn.disabled = false; // btn active
-      // add if (!clickedStartBtn) add alert
-      Notiflix.Notify.success('Good choise! Please start a timing', {
-        timeout: 1000,
-      });
-    }
+    selectedDate = selectedDates[0].getTime();
+    checkData();
   },
 };
 
 flatpickr('#datetime-picker', options);
-//==========================  timer
 
-// console.dir(flatpickr('#datetime-picker', options));
-// console.log(Object.values(options));
-// console.log(flatpickr.selectedDates);
+//==========================  timer
+refs.startBtn.disabled = true; // start btn do not active
+refs.stopBtn.disabled = true; // btn do not active
 
 const timer = {
-  isActive: false,
   intervalId: null,
-  startTimer(e) {
-    e.preventDefault();
-    if (this.isActive) {
-      return;
-    }
-    this.isActive = true;
-    this.intervalId = setInterval(() => {
-      const todayDate = Date.now(); // current time in ms
-      const selectDate = 1678312680000; // add really selected data
-      const deltaTime = selectDate - todayDate;
-      const { days, hours, minutes, seconds } = convertMs(deltaTime);
-      updateTimer({ days, hours, minutes, seconds });
-      // console.log(`${days}:${hours}:${minutes}:${seconds}`);
-    }, 1000);
-  },
-  stopTimer() {
-    clearInterval(this.intervalId); // stopped but not clicked
-    this.isActive = false;
-    console.log('stopped');
-  },
+  isActive: false,
 };
+
+// ====================== functions
+
+function checkData() {
+  const currentDate = Date.now(); // current time in ms
+
+  // ========================== alerts
+
+  if (selectedDate < currentDate) {
+    Notiflix.Notify.failure('Please choose a date in the future', {
+      timeout: 1000,
+    });
+    refs.startBtn.disabled = true; // btn do not active
+    // refs.stopBtn.disabled = false; // btn active
+    // return;
+  } else {
+    // add if (!clickedStartBtn) add alert
+    Notiflix.Notify.success('Good choise! Please start a timing', {
+      timeout: 500,
+    });
+    refs.startBtn.disabled = false; // btn active
+    // refs.stopBtn.disabled = true; // btn do not active
+
+    // timer.startTimer(); ??????
+  }
+}
 
 function updateTimer({ days, hours, minutes, seconds }) {
   refs.dayRef.textContent = days;
@@ -256,5 +238,42 @@ function convertMs(ms) {
   ); // Remaining seconds
   return { days, hours, minutes, seconds };
 }
-refs.startBtn.addEventListener('click', timer.startTimer());
-refs.stopBtn.addEventListener('click', timer.stopTimer());
+// ====================== listeners
+refs.startBtn.addEventListener('click', () => {
+  if (timer.isActive) {
+    return;
+  }
+  timer.isActive = true;
+  // console.log(selectedDate); // WHY this is no consoled but inside setInterval it consoled?
+
+  timer.intervalId = setInterval(() => {
+    const todayDate = Date.now(); // current time in ms
+    const deltaTime = selectedDate - todayDate;
+
+    if (deltaTime < 0) {
+      return;
+    }
+    // time = { days, hours, minutes, seconds }
+    const time = convertMs(deltaTime);
+    updateTimer(time);
+    // console.log(`${days}:${hours}:${minutes}:${seconds}`);
+    // console.log('clicked start');
+    refs.startBtn.disabled = true;
+    refs.stopBtn.disabled = false;
+  }, 1000);
+});
+
+refs.stopBtn.addEventListener('click', () => {
+  clearInterval(timer.intervalId); // stopped but not clicked
+
+  timer.isActive = false;
+  refs.stopBtn.disabled = true;
+
+  const time = convertMs(0);
+  updateTimer(time);
+
+  Notiflix.Notify.info('Please choose another date', {
+    timeout: 1000,
+  });
+  // console.log('clicked stop');
+});

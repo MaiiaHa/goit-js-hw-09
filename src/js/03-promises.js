@@ -1,11 +1,6 @@
-function createPromise(position, delay) {
-  const shouldResolve = Math.random() > 0.3;
-  if (shouldResolve) {
-    // Fulfill
-  } else {
-    // Reject
-  }
-}
+// all modules Notiflix
+import Notiflix from 'notiflix';
+
 /*Завдання 3 - генератор промісів​
 
 Виконуй це завдання у файлах 03-promises.html і 03-promises.js. Подивися демо-відео роботи генератора промісів.
@@ -44,3 +39,56 @@ createPromise(2, 1500)
 УВАГА
 Наступний функціонал не обов'язковий для здавання завдання, але буде хорошою додатковою практикою.
 Для відображення повідомлень користувачеві, замість console.log(), використовуй бібліотеку notiflix.*/
+/* recomendation from Sergiy illarionov
+1. + Добавити розмітку +
+2. + Добавити 'submit' слухача на форму
+3. Зловити в події дані з форми - 'delay', 'step', 'amount'
+4. Використати 'amount' як к-сть запуску функції createPromise
+5. Викликати createPromise n разів і використати index як 'position' 
+i delay = (delay + step) із форми 
+*/
+
+const refs = {
+  form: document.querySelector('form'),
+  createPromiseBtn: document.querySelector('button'),
+};
+
+refs.form.addEventListener('submit', e => {
+  e.preventDefault();
+
+  let delay = Number(e.currentTarget.delay.value);
+  const step = Number(e.currentTarget.step.value);
+  const amount = Number(e.currentTarget.amount.value);
+  // console.log({ delay, step, amount }); // {delay: 2000, step: 200, amount: 6}
+
+  for (let i = 1; i <= amount; i += 1) {
+    position = i;
+
+    createPromise(position, delay)
+      .then(({ position, delay }) => {
+        Notiflix.Notify.success(
+          `✅ Fulfilled promise ${position} in ${delay}ms`
+        );
+      })
+      .catch(({ position, delay }) => {
+        Notiflix.Notify.failure(
+          `❌ Rejected promise ${position} in ${delay}ms`
+        );
+      });
+
+    delay += step;
+  }
+});
+
+function createPromise(position, delay) {
+  return new Promise((resolve, reject) => {
+    const shouldResolve = Math.random() > 0.3;
+    setTimeout(() => {
+      if (shouldResolve) {
+        resolve({ position, delay });
+      } else {
+        reject({ position, delay });
+      }
+    }, delay);
+  });
+}
