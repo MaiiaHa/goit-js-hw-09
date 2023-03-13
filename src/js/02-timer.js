@@ -244,7 +244,7 @@ refs.startBtn.addEventListener('click', () => {
     return;
   }
   timer.isActive = true;
-  // console.log(selectedDate); // WHY this is no consoled but inside setInterval it consoled?
+  // console.log(selectedDate);
 
   timer.intervalId = setInterval(() => {
     const todayDate = Date.now(); // current time in ms
